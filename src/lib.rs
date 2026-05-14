@@ -1,30 +1,24 @@
 //  In this case, we indicate that the returned vector should contain string slices that reference slices of the argument contents
 //  (rather than the argument query).
 pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-    let mut result:Vec<&str> = Vec::new();
-
-    for line in contents.lines() {
-        if line.contains(query) {
-            result.push(line);
-        }
-    }
-    result
+    contents
+        .lines()
+        .filter(|line| line.contains(query))
+        .collect()
 }
 
 pub fn case_ignore_search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     // Note that query is now a String rather than a string slice because calling to_lowercase creates new data rather than referencing
     // existing data. When we pass query as an argument to the contains method now, we need to add an ampersand because the signature of
     // contains is defined to take a string slice.
+    let query:String = query.to_lowercase();
 
-    let query = query.to_lowercase();
-    let mut result:Vec<&str> = Vec::new();
-
-    for line in contents.lines() {
-        if line.to_lowercase().contains(&query) {
-            result.push(line);
-        }
-    }
-    result
+    contents
+        .lines()
+        .filter(|line| {
+            line.to_lowercase().contains(&query)
+        })
+        .collect()
 }
 
 #[cfg(test)]

@@ -18,13 +18,18 @@ pub struct Config {
 
 impl Config {
     // Separate argument parsing from the program logic.
-    fn build(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() < 3 {
-            return Err("Usage: IGNORE_CASE=<value> cargo run -- <pattern> <file_path> <IGNORE_CASE>.\n<value> should be 1 for case case-insensitive search or do not set the IGNORE_CASE variable for case-sensitive search.");
-        }
+    fn build(mut args: impl Iterator<Item = String>) -> Result<Config, &'static str> {
+        args.next();
 
-        let query       = args[1].clone();
-        let file_path   = args[2].clone();
+        let query = match args.next() {
+            Some(query) => query,
+            None => return Err("Did not get a query string."),
+        };
+
+        let file_path = match args.next() {
+            Some(file_path) => file_path,
+            None => return Err("Did not get a path to file."),
+        };
 
         // To set ignore_case's value, we call the env::var function and pass it the name of the IGNORE_CASE environment variable.
         // The env::var function returns a Result that will be the successful Ok variant that contains the value of the env variable
@@ -56,12 +61,10 @@ fn run(config: Config) -> Result<(), Box<dyn Error>> {
 }
 
 fn main() {
-    let args:Vec<String> = env::args().collect();
-
     // [unwrap_or_else]:
     // If the Result is an Ok value, it returns the inner value that Ok is wrapping. However, if the value is an Err value, this method
     // calls the code in the closure.
-    let config = Config::build(&args).unwrap_or_else(|error| {
+    let config = Config::build(env::args()).unwrap_or_else(|error| {
         eprintln!("An error has occured during argument parsing:\n{error}");
         process::exit(1);
     });
